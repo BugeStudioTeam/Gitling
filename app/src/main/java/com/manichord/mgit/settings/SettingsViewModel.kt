@@ -43,6 +43,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             prefsHelper.setUseSharedMediaStorage(use)
             val newRoot = Repo.getDefaultRepoRootDir()
             Repo.moveReposBetweenDefaultRoots(app, oldRoot, newRoot)
+            Repo.syncNoMediaMarker(use)
             _movingRepoStorage.postValue(false)
             _useSharedMediaStorage.postValue(use)
             _repoRoot.postValue(newRoot.absolutePath)
