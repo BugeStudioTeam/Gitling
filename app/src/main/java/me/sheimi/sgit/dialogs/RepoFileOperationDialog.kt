@@ -34,6 +34,7 @@ class RepoFileOperationDialog : SheimiDialogFragment() {
         private const val REMOVE_FORCE = 4
         private const val MAKE_EXECUTABLE = 5
         private const val MAKE_NOT_EXECUTABLE = 6
+        private const val RENAME = 7
     }
 
     override fun onCreateView(
@@ -105,6 +106,13 @@ class RepoFileOperationDialog : SheimiDialogFragment() {
                                                         filePath,
                                                         UpdateIndexTask.calculateNewMode(newExecutableState)
                                                     )
+                                                }
+                                                RENAME -> {
+                                                    val dialog = RenameFileDialog()
+                                                    dialog.arguments = Bundle().apply {
+                                                        putString(RenameFileDialog.FILE_PATH, filePath)
+                                                    }
+                                                    dialog.show(parentFragmentManager, "rename-file-dialog")
                                                 }
                                             }
                                             dismiss()
