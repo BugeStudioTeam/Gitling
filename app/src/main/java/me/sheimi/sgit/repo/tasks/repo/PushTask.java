@@ -90,7 +90,7 @@ public class PushTask extends RepoRemoteOpTask {
           pushCommand.setForce(true);
         }
 
-        setCredentials(pushCommand);
+        setCredentials(pushCommand, mRepo.getRemoteURL(mRemote));
 
         try {
             Iterable<PushResult> result = pushCommand.call();

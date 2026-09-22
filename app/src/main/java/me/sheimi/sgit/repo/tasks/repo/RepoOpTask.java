@@ -5,6 +5,7 @@ import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import java.util.Locale;
 
+import com.manichord.mgit.auth.AccountManager;
 import com.manichord.mgit.models.Account;
 import me.sheimi.android.activities.SheimiFragmentActivity.OnPasswordEntered;
 import me.sheimi.android.utils.BasicFunctions;
@@ -70,18 +71,34 @@ public abstract class RepoOpTask extends SheimiAsyncTask<Void, String, Boolean> 
                 R.string.error_task_running);
     }
 
+    /** Convenience overload for operations with exactly one remote in play (clone), where
+     * mRepo.getRemoteURL() (the repo's own stored URL) already is that remote's URL. Anything
+     * that operates against a specific named remote on a repo that can have several (push,
+     * pull, fetch) must go through {@link #setCredentials(TransportCommand, String)} instead --
+     * see its doc comment for why. */
     protected void setCredentials(TransportCommand command) {
-        String username = mRepo.getUsername();
-        String password = mRepo.getPassword();
+        setCredentials(command, mRepo.getRemoteURL());
+    }
 
-        if (username == null || password == null || username.trim().isEmpty()
-                || password.trim().isEmpty()) {
-            Account account = MGitApplication.getContext().getAccountManager() == null ? null
-                    : MGitApplication.getContext().getAccountManager().findAccountForRemoteUrl(mRepo.getRemoteURL());
-            if (account != null) {
-                username = account.getUsername();
-                password = account.getToken();
-            }
+    /** A repo's saved username/password (from the password prompt's "save password" checkbox)
+     * is stored once per repo, not once per remote, so it can't distinguish a GitHub remote from
+     * a GitLab remote on the same repo -- applying it unconditionally to every remote causes
+     * exactly that mismatch (#59). A connected Account, on the other hand, is already matched by
+     * host (see AccountManager.findAccountForRemoteUrl), so it's tried first for the URL actually
+     * being pushed/pulled/fetched/cloned; the repo-level saved credential is only a fallback for
+     * a remote whose host has no connected account. */
+    protected void setCredentials(TransportCommand command, String remoteUrl) {
+        AccountManager accountManager = MGitApplication.getContext().getAccountManager();
+        Account account = accountManager == null ? null : accountManager.findAccountForRemoteUrl(remoteUrl);
+
+        String username;
+        String password;
+        if (account != null) {
+            username = account.getUsername();
+            password = account.getToken();
+        } else {
+            username = mRepo.getUsername();
+            password = mRepo.getPassword();
         }
 
         if (username != null && password != null && !username.trim().isEmpty()

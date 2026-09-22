@@ -208,7 +208,7 @@ object GitCommandEngine {
         val cmd = git.fetch()
             .setRemote(remote)
             .setTransportConfigCallback(SgitTransportCallback())
-        applyCredentials(repo, cmd)
+        applyCredentials(repo, remote, cmd)
         val result = cmd.call()
         val updates = result.trackingRefUpdates
         if (updates.isEmpty()) return "Already up to date."
@@ -228,7 +228,7 @@ object GitCommandEngine {
         val cmd = git.pull()
             .setRemote(remote)
             .setTransportConfigCallback(SgitTransportCallback())
-        applyCredentials(repo, cmd)
+        applyCredentials(repo, remote, cmd)
         val result = cmd.call()
         if (!result.isSuccessful) {
             val status = result.mergeResult?.mergeStatus?.toString()
@@ -249,16 +249,24 @@ object GitCommandEngine {
         return sb.toString().trimEnd()
     }
 
-    private fun applyCredentials(repo: Repo, cmd: TransportCommand<*, *>) {
-        var username = repo.getUsername()
-        var password = repo.getPassword()
-        if (username.isNullOrBlank() || password.isNullOrBlank()) {
-            val account = MGitApplication.getContext().accountManager
-                ?.findAccountForRemoteUrl(repo.getRemoteURL())
-            if (account != null) {
-                username = account.username
-                password = account.token
-            }
+    /** Same fix as RepoOpTask.setCredentials(TransportCommand, String) in the legacy layer: a
+     * repo's saved username/password applies to the whole repo, not to a specific remote, so it
+     * can't tell a GitHub remote from a GitLab remote on the same repo (#59). A connected Account
+     * is already matched by host, so it's tried first for the remote this command actually
+     * targets; the repo-level saved credential is only a fallback for a remote whose host has no
+     * connected account. */
+    private fun applyCredentials(repo: Repo, remoteName: String, cmd: TransportCommand<*, *>) {
+        val account = MGitApplication.getContext().accountManager
+            ?.findAccountForRemoteUrl(repo.getRemoteURL(remoteName))
+
+        val username: String?
+        val password: String?
+        if (account != null) {
+            username = account.username
+            password = account.token
+        } else {
+            username = repo.getUsername()
+            password = repo.getPassword()
         }
         if (!username.isNullOrBlank() && !password.isNullOrBlank()) {
             cmd.setCredentialsProvider(UsernamePasswordCredentialsProvider(username, password))
