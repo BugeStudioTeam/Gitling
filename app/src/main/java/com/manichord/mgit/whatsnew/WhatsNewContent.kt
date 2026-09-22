@@ -13,6 +13,18 @@ data class WhatsNewEntry(
 object WhatsNewContent {
     val entries = listOf(
         WhatsNewEntry(
+            versionCode = 60,
+            versionName = "1.0.60",
+            highlights = listOf(
+                "Added a Rename option to the file long-press menu",
+                "Fixed saved credentials being applied to the wrong remote when a repo has more than one",
+                "Fixed the repo operations menu opening on the wrong side of the screen",
+                "Fixed a crash opening the Commits tab on a repository with no commits yet",
+                "Repo images no longer show up in your phone's gallery when \"Make repos visible to other apps\" is on",
+                "Fixed the system back button on the Files tab to go up a folder instead of leaving the screen"
+            )
+        ),
+        WhatsNewEntry(
             versionCode = 59,
             versionName = "1.0.59",
             highlights = listOf(

@@ -5,6 +5,14 @@ in-app "What's New" history (`app/src/main/java/com/manichord/mgit/whatsnew/What
 and the per-release notes under `fastlane/metadata/android/en-US/changelogs/`; update this file
 as part of cutting each release (see `docs/agents/release-process.md`).
 
+## 1.0.60 - 2026-09-22
+- Added a Rename option to the file long-press menu.
+- Fixed saved credentials being applied to the wrong remote when a repo has more than one.
+- Fixed the repo operations menu opening on the wrong side of the screen.
+- Fixed a crash opening the Commits tab on a repository with no commits yet.
+- Repo images no longer show up in your phone's gallery when "Make repos visible to other apps" is on.
+- Fixed the system back button on the Files tab to go up a folder instead of leaving the screen.
+
 ## 1.0.58 - 2026-08-04
 - Fixed a crash staging certain files (small text files with a .gitattributes filter or needing line-ending conversion) on Android 12 and older.
 
