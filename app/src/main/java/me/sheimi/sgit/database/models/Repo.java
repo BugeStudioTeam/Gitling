@@ -78,6 +78,7 @@ public class Repo implements Comparable<Repo>, Serializable {
     public static final String DOT_GIT_DIR = ".git";
     public static final String EXTERNAL_PREFIX = "external://";
     public static final String REPO_DIR = "repo";
+    private static final String NOMEDIA_FILE = ".nomedia";
 
     private static SparseArray<RepoOpTask> mRepoTasks = new SparseArray<RepoOpTask>();
 
@@ -588,6 +589,27 @@ public class Repo implements Comparable<Repo>, Serializable {
                 : FsUtils.getExternalDir(REPO_DIR, true);
     }
 
+    /** Keeps a .nomedia marker in the shared-media repos root (Android/media/<pkg>/repo) in step
+     * with the "make repos visible to other apps" setting, so gallery apps using the MediaStore
+     * index don't list images from inside repos. It lives in the root rather than in each repo so
+     * it never shows up as an untracked file in a repo's working tree. Created when {@code
+     * sharedMedia} is true, removed when false (without creating the media dir just to check).
+     * Does disk I/O, so call it off the main thread. */
+    public static void syncNoMediaMarker(boolean sharedMedia) {
+        File marker = new File(FsUtils.getMediaDir(REPO_DIR, sharedMedia), NOMEDIA_FILE);
+        try {
+            if (sharedMedia) {
+                if (!marker.exists() && !marker.createNewFile()) {
+                    Timber.w("Could not create %s", marker);
+                }
+            } else if (marker.exists() && !marker.delete()) {
+                Timber.w("Could not delete %s", marker);
+            }
+        } catch (IOException e) {
+            Timber.e(e, "Failed to sync %s", marker);
+        }
+    }
+
     /** Moves every bare, root-relative (non-external) repo's directory from one default root to
      * the other -- called when the user flips the "make repos visible to other apps" Settings
      * toggle. Both roots are always accessible to Gitling regardless of the current setting (see
@@ -682,6 +704,20 @@ public class Repo implements Comparable<Repo>, Serializable {
             String url = config.getString("remote", remoteNames.iterator()
                     .next(), "url");
             return url;
+        } catch (StopTaskException e) {
+        }
+        return "";
+    }
+
+    /** The URL configured for a specific named remote (e.g. "origin", "upstream") -- unlike
+     * {@link #getRemoteOriginURL()}, this looks up the remote actually being operated on rather
+     * than always falling back to "origin" or the first remote, which matters for credential
+     * selection on a repo with more than one remote (see setCredentials() in RepoOpTask). */
+    public String getRemoteURL(String remoteName) {
+        try {
+            StoredConfig config = getStoredConfig();
+            String url = config.getString("remote", remoteName, "url");
+            return url != null ? url : "";
         } catch (StopTaskException e) {
         }
         return "";

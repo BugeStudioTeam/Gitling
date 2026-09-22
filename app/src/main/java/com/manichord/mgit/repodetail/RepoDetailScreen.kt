@@ -1,5 +1,6 @@
 package com.manichord.mgit.repodetail
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -19,8 +20,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import me.sheimi.sgit.R
 import me.sheimi.sgit.database.models.Repo
@@ -38,6 +41,7 @@ private const val TAB_CONSOLE = 3
 fun RepoDetailScreen(
     viewModel: RepoDetailViewModel,
     onBackClick: () -> Unit,
+    onNavigateUp: () -> Boolean,
     onBranchClick: () -> Unit,
     onOperationClick: (index: Int) -> Unit,
     filesContent: @Composable () -> Unit,
@@ -68,11 +72,23 @@ fun RepoDetailScreen(
         TabItem(stringResource(R.string.tab_status_label), Icons.Default.Assessment),
         TabItem(stringResource(R.string.tab_console_label), Icons.Outlined.Terminal)
     )
-
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     val searchFocusRequester = remember { FocusRequester() }
+
+    BackHandler {
+        when {
+            isSearchActive -> {
+                isSearchActive = false
+                searchQuery = ""
+                onFilesSearchQueryChange("")
+                onCommitsSearchQueryChange("")
+            }
+            pagerState.currentPage == TAB_FILES && onNavigateUp() -> Unit
+            else -> onBackClick()
+        }
+    }
 
     // Each tab's search is independent -- switching tabs while searching would otherwise leave
     // a stale query applied to whichever tab the user navigated away from, so just exit search.
@@ -85,9 +101,27 @@ fun RepoDetailScreen(
         }
     }
 
+    // ModalNavigationDrawer always opens from the layout-start edge, with no built-in option to
+    // open from the end -- but the menu button that opens it lives in the TopAppBar's `actions`,
+    // which Compose always renders at the layout-end (issue #64: button and drawer were on
+    // opposite sides). Flipping LocalLayoutDirection for just the drawer container, then
+    // flipping back to the real direction for both the drawer's own content and the screen
+    // behind it, makes the drawer's start edge become the visual end edge instead -- matching
+    // wherever the button actually renders. This must invert the *current* direction rather than
+    // hardcode Rtl, so it still opens on the correct side (the left) for an RTL locale (e.g.
+    // Arabic, see values-ar/), where the button itself renders on the left too.
+    val layoutDirection = LocalLayoutDirection.current
+    val drawerLayoutDirection = if (layoutDirection == LayoutDirection.Ltr) {
+        LayoutDirection.Rtl
+    } else {
+        LayoutDirection.Ltr
+    }
+
+    CompositionLocalProvider(LocalLayoutDirection provides drawerLayoutDirection) {
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
+            CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
             ModalDrawerSheet {
                 Spacer(Modifier.height(12.dp))
                 Text(
@@ -102,8 +136,10 @@ fun RepoDetailScreen(
                     scope.launch { drawerState.close() }
                 })
             }
+            }
         }
     ) {
+        CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -275,6 +311,8 @@ fun RepoDetailScreen(
                 }
             }
         }
+        }
+    }
     }
 }
 

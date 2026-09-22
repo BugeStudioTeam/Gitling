@@ -49,3 +49,6 @@ local.properties
 *.iws
 *.ipr
 app/src/main/resources
+
+# Local-only test credentials, never commit
+.secrets
