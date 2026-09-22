@@ -11,6 +11,7 @@ import me.sheimi.android.utils.Profile
 import me.sheimi.sgit.database.RepoContract
 import me.sheimi.sgit.database.RepoDbManager
 import me.sheimi.sgit.database.models.Repo
+import me.sheimi.sgit.preference.PreferenceHelper
 
 class RepoListViewModel(application: Application) : AndroidViewModel(application), RepoDbManager.RepoDbObserver {
 
@@ -28,6 +29,10 @@ class RepoListViewModel(application: Application) : AndroidViewModel(application
         if (Repo.migrateAwayFromCustomRoot(getApplication())) {
             Profile.setPendingStorageMigrationNotice(getApplication(), true)
         }
+        // Covers users who already had "Make repos visible to other apps" on before the .nomedia
+        // marker existed, so they get it without having to toggle the setting.
+        val sharedMedia = PreferenceHelper(getApplication()).useSharedMediaStorage()
+        Thread { Repo.syncNoMediaMarker(sharedMedia) }.start()
         RepoDbManager.registerDbObserver(RepoContract.RepoEntry.TABLE_NAME, this)
         refreshRepoList()
         _showStorageMigrationNotice.value = Profile.getPendingStorageMigrationNotice(getApplication())

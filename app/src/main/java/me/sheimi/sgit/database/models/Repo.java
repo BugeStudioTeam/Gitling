@@ -78,6 +78,7 @@ public class Repo implements Comparable<Repo>, Serializable {
     public static final String DOT_GIT_DIR = ".git";
     public static final String EXTERNAL_PREFIX = "external://";
     public static final String REPO_DIR = "repo";
+    private static final String NOMEDIA_FILE = ".nomedia";
 
     private static SparseArray<RepoOpTask> mRepoTasks = new SparseArray<RepoOpTask>();
 
@@ -586,6 +587,27 @@ public class Repo implements Comparable<Repo>, Serializable {
         return prefs.useSharedMediaStorage()
                 ? FsUtils.getMediaDir(REPO_DIR, true)
                 : FsUtils.getExternalDir(REPO_DIR, true);
+    }
+
+    /** Keeps a .nomedia marker in the shared-media repos root (Android/media/<pkg>/repo) in step
+     * with the "make repos visible to other apps" setting, so gallery apps using the MediaStore
+     * index don't list images from inside repos. It lives in the root rather than in each repo so
+     * it never shows up as an untracked file in a repo's working tree. Created when {@code
+     * sharedMedia} is true, removed when false (without creating the media dir just to check).
+     * Does disk I/O, so call it off the main thread. */
+    public static void syncNoMediaMarker(boolean sharedMedia) {
+        File marker = new File(FsUtils.getMediaDir(REPO_DIR, sharedMedia), NOMEDIA_FILE);
+        try {
+            if (sharedMedia) {
+                if (!marker.exists() && !marker.createNewFile()) {
+                    Timber.w("Could not create %s", marker);
+                }
+            } else if (marker.exists() && !marker.delete()) {
+                Timber.w("Could not delete %s", marker);
+            }
+        } catch (IOException e) {
+            Timber.e(e, "Failed to sync %s", marker);
+        }
     }
 
     /** Moves every bare, root-relative (non-external) repo's directory from one default root to
