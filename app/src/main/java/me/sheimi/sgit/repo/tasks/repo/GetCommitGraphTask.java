@@ -3,6 +3,7 @@ package me.sheimi.sgit.repo.tasks.repo;
 import me.sheimi.sgit.database.models.Repo;
 import me.sheimi.sgit.exception.StopTaskException;
 
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revplot.PlotCommitList;
@@ -59,8 +60,16 @@ public class GetCommitGraphTask extends RepoOpTask {
                         }
                     }
                 } else {
-                    RevCommit head = walk.parseCommit(repository.resolve("HEAD"));
-                    walk.markStart(head);
+                    // A freshly initialized repo with no commits yet has an unborn HEAD, so
+                    // resolve() returns null here -- walk.parseCommit(null) would NPE deep
+                    // inside JGit (AnyObjectId.hashCode() on the null id) rather than throwing
+                    // something catchable. Leave the walk with nothing marked, which yields an
+                    // empty plot list below instead of a crash.
+                    ObjectId headId = repository.resolve("HEAD");
+                    if (headId != null) {
+                        RevCommit head = walk.parseCommit(headId);
+                        walk.markStart(head);
+                    }
                 }
                 PlotCommitList<PlotLane> plotList = new PlotCommitList<>();
                 plotList.source(walk);
