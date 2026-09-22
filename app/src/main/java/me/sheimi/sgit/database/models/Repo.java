@@ -709,6 +709,20 @@ public class Repo implements Comparable<Repo>, Serializable {
         return "";
     }
 
+    /** The URL configured for a specific named remote (e.g. "origin", "upstream") -- unlike
+     * {@link #getRemoteOriginURL()}, this looks up the remote actually being operated on rather
+     * than always falling back to "origin" or the first remote, which matters for credential
+     * selection on a repo with more than one remote (see setCredentials() in RepoOpTask). */
+    public String getRemoteURL(String remoteName) {
+        try {
+            StoredConfig config = getStoredConfig();
+            String url = config.getString("remote", remoteName, "url");
+            return url != null ? url : "";
+        } catch (StopTaskException e) {
+        }
+        return "";
+    }
+
     public Set<String> getRemotes() {
         if (mRemotes != null)
             return mRemotes;
