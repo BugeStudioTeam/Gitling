@@ -13,6 +13,13 @@ data class WhatsNewEntry(
 object WhatsNewContent {
     val entries = listOf(
         WhatsNewEntry(
+            versionCode = 61,
+            versionName = "1.0.61",
+            highlights = listOf(
+                "Updated a core security library to include upstream compatibility improvements for newer Android devices with 16 KB memory pages"
+            )
+        ),
+        WhatsNewEntry(
             versionCode = 60,
             versionName = "1.0.60",
             highlights = listOf(

@@ -1,0 +1,1 @@
+Updated a core security library to include upstream compatibility improvements for newer Android devices with 16 KB memory pages.

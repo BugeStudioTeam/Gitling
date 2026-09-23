@@ -5,6 +5,9 @@ in-app "What's New" history (`app/src/main/java/com/manichord/mgit/whatsnew/What
 and the per-release notes under `fastlane/metadata/android/en-US/changelogs/`; update this file
 as part of cutting each release (see `docs/agents/release-process.md`).
 
+## 1.0.61 - 2026-09-23
+- Updated a core security library to include upstream compatibility improvements for newer Android devices with 16 KB memory pages.
+
 ## 1.0.60 - 2026-09-22
 - Added a Rename option to the file long-press menu.
 - Fixed saved credentials being applied to the wrong remote when a repo has more than one.
