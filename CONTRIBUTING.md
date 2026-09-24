@@ -3,6 +3,11 @@
 Thanks for your interest in improving Gitling. Bug reports, fixes, features, and translations are
 all welcome.
 
+> **Important:** all work happens on the **`develop`** branch. Branch off `develop` and open your
+> pull request against `develop`, not `master`. `master` only receives merges from `develop` when
+> a release is cut. Because `master` is the repo's default branch, GitHub will pick it
+> automatically when you fork or open a PR, so double-check the base branch.
+
 ## Reporting bugs and requesting features
 
 Open an issue using the [bug report](https://github.com/maneeshacooray/Gitling/issues/new?template=bug_report.md)
@@ -55,12 +60,19 @@ graph is rendered. It's worth reading before making larger changes.
 
 ## Making a pull request
 
-1. Fork the repo and create a branch from **`develop`**, for example `fix/crash-on-empty-repo`
-   or `feat/rename-file`.
+1. Fork the repo and create a branch from **`develop`** (not `master`), for example
+   `fix/crash-on-empty-repo` or `feat/rename-file`:
+
+   ```bash
+   git remote add upstream https://github.com/maneeshacooray/Gitling.git   # once
+   git fetch upstream
+   git checkout -b fix/my-fix upstream/develop
+   ```
 2. Make your change. Keep each PR focused on one fix or feature.
 3. Build and run the unit tests (see above).
 4. Test it on a real device or emulator, not just a successful compile.
-5. Open the PR against **`develop`**, not `master`, and fill in the PR template.
+5. Open the PR against **`develop`**, not `master`. On GitHub's "Open a pull request" page, change
+   the **base** dropdown from `master` to `develop`. Then fill in the PR template.
 
 A few details:
 
