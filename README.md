@@ -9,6 +9,7 @@
   <a href="https://f-droid.org/packages/com.maneeshacooray.gitling/"><img src="https://img.shields.io/f-droid/v/com.maneeshacooray.gitling" alt="F-Droid version"></a>
   <a href="https://play.google.com/store/apps/details?id=com.maneeshacooray.gitling"><img src="https://img.shields.io/badge/Google%20Play-available-blue?logo=google-play" alt="Available on Google Play"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/github/license/maneeshacooray/Gitling" alt="License: GPLv3"></a>
+  <a href="https://ko-fi.com/maneeshacooray"><img src="https://img.shields.io/badge/Ko--fi-support%20Gitling-FF5E5B?logo=ko-fi&logoColor=white" alt="Support Gitling on Ko-fi"></a>
 </p>
 
 <p align="center">Gitling is a Git client for Android, built with Jetpack Compose and Material 3 Expressive.</p>
@@ -17,6 +18,7 @@ It's a fork of [MGit](https://github.com/maks/MGit) (itself a continuation of [S
 
 * If you encounter any issues (bugs, crashes, etc.), please open an issue on [GitHub](https://github.com/maneeshacooray/Gitling/issues/new) describing what happened and how to reproduce it.
 * This app requires a minimum of Android 6.0 (API 23).
+* Gitling is free and open source, with no ads or tracking. If it's useful to you, you can support its development on [Ko-fi](https://ko-fi.com/maneeshacooray).
 
 ## Screenshots
 
