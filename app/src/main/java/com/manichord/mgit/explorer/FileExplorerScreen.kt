@@ -18,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -107,12 +108,17 @@ fun FileListContent(
      * recursive filename search) where the bare name alone wouldn't disambiguate same-named
      * files in different folders. */
     displayPath: ((File) -> String)? = null,
-    onPathSubmit: ((String) -> Unit)? = null
+    onPathSubmit: ((String) -> Unit)? = null,
+    pathEditable: Boolean = true
 ) {
     var showPathDialog by remember { mutableStateOf(false) }
     var pathDraft by remember { mutableStateOf(currentPath) }
 
     if (showPathDialog) {
+        val submit: () -> Unit = {
+            showPathDialog = false
+            onPathSubmit?.invoke(pathDraft)
+        }
         AlertDialog(
             onDismissRequest = { showPathDialog = false },
             title = { Text(stringResource(R.string.dialog_path_title)) },
@@ -122,14 +128,12 @@ fun FileListContent(
                     onValueChange = { pathDraft = it },
                     singleLine = true,
                     label = { Text(stringResource(R.string.dialog_path_label)) },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { submit() })
                 )
             },
             confirmButton = {
-                TextButton(onClick = {
-                    showPathDialog = false
-                    onPathSubmit?.invoke(pathDraft)
-                }) {
+                TextButton(onClick = submit) {
                     Text(stringResource(R.string.label_ok))
                 }
             },
@@ -151,11 +155,9 @@ fun FileListContent(
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable {
-                    if (onPathSubmit != null) {
-                        pathDraft = currentPath
-                        showPathDialog = true
-                    }
+                .clickable(enabled = onPathSubmit != null && pathEditable) {
+                    pathDraft = currentPath
+                    showPathDialog = true
                 }
                 .padding(horizontal = 16.dp, vertical = 10.dp)
         )

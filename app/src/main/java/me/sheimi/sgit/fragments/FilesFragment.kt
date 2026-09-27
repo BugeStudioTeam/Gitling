@@ -88,13 +88,32 @@ class FilesFragment : RepoDetailFragment() {
                         onItemClick = ::onFileClicked,
                         onItemLongClick = ::onFileLongClicked,
                         displayPath = if (query != null) ::relativePath else null,
+                        pathEditable = query == null,
                         onPathSubmit = { input ->
                             val root = rootDir
                             if (root != null) {
                                 val target = File(root, input)
-                                if (target.exists() && target.isDirectory) {
-                                    searchQuery = null
-                                    setCurrentDir(target)
+                                val canonicalRoot = root.canonicalFile
+                                val canonicalTarget = target.canonicalFile
+                                val rootPath = canonicalRoot.path.trimEnd(File.separatorChar)
+                                val targetPath = canonicalTarget.path
+                                val isInside = canonicalTarget == canonicalRoot ||
+                                    targetPath.startsWith(rootPath + File.separator)
+                                val relative = if (isInside && canonicalTarget != canonicalRoot) {
+                                    targetPath.substring(rootPath.length + 1)
+                                } else {
+                                    ""
+                                }
+                                val firstSegment = relative.replace('\\', '/').substringBefore('/')
+                                when {
+                                    !canonicalTarget.exists() || !canonicalTarget.isDirectory ->
+                                        showToastMessage(me.sheimi.sgit.R.string.dialog_path_invalid)
+                                    !isInside || firstSegment == ".git" ->
+                                        showToastMessage(me.sheimi.sgit.R.string.dialog_path_out_of_repo)
+                                    else -> {
+                                        searchQuery = null
+                                        setCurrentDir(canonicalTarget)
+                                    }
                                 }
                             }
                         }
